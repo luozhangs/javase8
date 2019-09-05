@@ -1,4 +1,4 @@
-package db;
+package com.zhang.db;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -26,7 +26,7 @@ public class DBConnection {
         Map<String,String> map = new HashMap();
         try {
             Yaml yaml = new Yaml();
-            propMap =(Map)yaml.load(new FileInputStream(new File("src/main/resources/db.yml")));
+            propMap =(Map)yaml.load(new FileInputStream(new File("D:\\workspace\\javase8\\db-utils\\src\\main\\resources\\db.yml")));
             propMap = (Map) propMap.get("datasource");
             if(propMap!=null){
                 map = (Map<String, String>) propMap.get("master");
@@ -58,7 +58,7 @@ public class DBConnection {
 
     /**
      * 其他数据源
-     * @param type
+     * @param key
      * @return
      */
     public static Connection getConnection(String key) {

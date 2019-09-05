@@ -30,18 +30,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.maxx</groupId>
-            <artifactId>base-util</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.mxx</groupId>
-            <artifactId>cdms-common</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.tools</groupId>
-            <artifactId>tools-plug-in</artifactId>
-        </dependency>
+
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>

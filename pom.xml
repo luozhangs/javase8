@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
     <modules>
         <module>steamtest</module>
-        <module>dbtest</module>
+        <module>db-utils</module>
         <module>utils</module>
     </modules>
 
@@ -32,25 +32,22 @@
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.34</version>
             </dependency>
-            <dependency>
-                <groupId>com.maxx</groupId>
-                <artifactId>base-util</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.mxx</groupId>
-                <artifactId>cdms-common</artifactId>
-                <version>0.0.1-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>com.tools</groupId>
-                <artifactId>tools-plug-in</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
+
             <dependency>
                 <groupId>com.sun.mail</groupId>
                 <artifactId>javax.mail</artifactId>
                 <version>1.6.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.zhang</groupId>
+                <artifactId>utils</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>com.zhang</groupId>
+                <artifactId>db-utils</artifactId>
+                <version>1.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

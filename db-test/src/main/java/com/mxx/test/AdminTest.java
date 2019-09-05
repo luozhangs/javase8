@@ -1,7 +1,7 @@
-package test;
+package com.mxx.test;
 
 import com.alibaba.fastjson.JSONObject;
-import db.DBConnection;
+import com.zhang.db.DBConnection;
 import org.junit.Test;
 
 import java.sql.Connection;

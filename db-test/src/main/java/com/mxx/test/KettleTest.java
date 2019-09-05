@@ -1,15 +1,14 @@
-package test;
+package com.mxx.test;
 
 
 import com.alibaba.fastjson.JSONObject;
-import db.DBConnection;
+import com.zhang.db.DBConnection;
 import excel.ExcelUtil;
 import org.junit.Test;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

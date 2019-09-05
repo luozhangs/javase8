@@ -14,7 +14,7 @@ public class ExcelTest {
 
     @Test
     public void importTest(){
-        String filePath = "C:\\Users\\zhang\\Desktop\\生成的数据\\测试.xlsx";
+        String filePath = "C:\\Users\\zhang\\Desktop\\生成的数据\\佛山医护数据.xlsx";
         Map<String,String> map = new HashMap<>();
         map.put("id","id");
         try {
