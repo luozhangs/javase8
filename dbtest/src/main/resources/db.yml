@@ -1,0 +1,41 @@
+datasource:
+  master:
+    url: jdbc:mysql://rm-hp3830wvvu19191n2wo.mysql.huhehaote.rds.aliyuncs.com:3306/cdms_prepro?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: cdms
+    password: cdmsPassw0rd$123
+  db2:
+    url: jdbc:mysql://192.168.0.23:3306/kettle?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: kettle
+    password: kettle@123
+  prod:
+    url: jdbc:mysql://rm-hp3830wvvu19191n2wo.mysql.huhehaote.rds.aliyuncs.com:3306/cdms?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: cdms
+    password: cdmsPassw0rd$123
+  zhang:
+    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: root
+    password: admin
+  zxx_admin:
+    url: jdbc:mysql://test.aviptcare.com:3307/admin_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: root
+    password: 1HBL^QT$MXX
+  zxx_prepro:
+    url: jdbc:mysql://test.aviptcare.com:3307/cdms_prepro?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: root
+    password: 1HBL^QT$MXX
+  report_prod:
+    url: jdbc:mysql://rm-2zea9gre6i01zp2rmo.mysql.rds.aliyuncs.com:3306/cdms?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: cdms
+    password: cdmsPassw0rd$123
+  report_prepro:
+    url: jdbc:mysql://rm-2zea9gre6i01zp2rmo.mysql.rds.aliyuncs.com:3306/cdms_prepro?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: cdms
+    password: cdmsPassw0rd$123
+  test_3306:
+    url: jdbc:mysql://39.104.75.4:3306/cdms_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: cdms
+    password: cdms
+  test_3307:
+    url: jdbc:mysql://39.104.75.4:3307/cdms_test?useUnicode=true&characterEncoding=UTF-8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true
+    username: root
+    password: 1HBL^QT$MXX

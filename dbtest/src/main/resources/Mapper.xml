@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mapper>
+    <select id="findAccountListRole" resultType="com.alibaba.fastjson.JSONObject">
+        select a.* from mxx_base_account a LEFT JOIN mxx_base_role r on a.roleId = r.id where a.cdmsCenter in
+        (select center_id from mxx_medical_center_relation where medical_id=12)
+        and r.name in ('????','????','????','????') and identity_card !='xxxxxx-xx' and identity_card !='xxxxxx'
+        GROUP BY a.roleId;
+    </select>
+    <insert id="insertAccount" parameterType="com.alibaba.fastjson.JSONObject">
+        insert into mxx_base_account VALUES (#{id},#{loginName},#{password},#{salt},
+        #{roleId},#{picUrl},#{name},#{email},#{skin},#{isValid},#{createTime},
+        #{updateTime},#{description},#{cdmsCenter},#{cdmsDepartment},#{major},
+        #{isLeader},#{motto},#{sex},#{education},#{birthday},#{identity_card},
+        #{phone},#{department},#{title},#{skill},#{administration_id},#{create_id})
+    </insert>
+
+    <select id="findAccountListByIdentity" parameterType="string" resultType="com.alibaba.fastjson.JSONObject">
+        select * from mxx_base_account where identity_card=#{_parameter}
+    </select>
+</mapper>
