@@ -1,27 +1,13 @@
-package com.test;
+package com.mxx.test;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.maxx.base.util.DateUtil;
-import com.maxx.base.util.FileUtil;
 import com.maxx.base.util.HttpClientSend;
-import com.maxx.base.util.HttpUtils;
-import com.maxx.base.util.img.ImageUtil;
-import com.mxx.base.utils.security.CipherUtil;
-import com.socket.client.Student;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.utils.HttpClientUtils;
 import org.junit.Test;
 
-import javax.swing.*;
-import java.io.*;
-import java.lang.reflect.Field;
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * Created by zhang on 2018/7/27.
