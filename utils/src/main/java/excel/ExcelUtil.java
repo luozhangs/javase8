@@ -419,8 +419,8 @@ public class ExcelUtil<E> {
 
         InputStream is = new FileInputStream(file);
 
-        Workbook wb = new XSSFWorkbook(is);
-
+//        Workbook wb = new XSSFWorkbook(is);
+        Workbook wb = WorkbookFactory.create(is);
         Sheet sheet = wb.getSheetAt(0);
         Row title = sheet.getRow(0);
         // 标题数组，后面用到，根据索引去标题名称，通过标题名称去字段名称用到 textToKey

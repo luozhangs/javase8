@@ -21,6 +21,16 @@
             <artifactId>fastjson</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.maxx</groupId>
+            <artifactId>base-util</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.zhang</groupId>
+            <artifactId>utils</artifactId>
+        </dependency>
     </dependencies>
 
 

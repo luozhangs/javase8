@@ -454,7 +454,7 @@ public class DBConnection {
                 }else{
                     try {
                         for (int i=1; i<=columnCount; i++) {
-                            if(model!=null){
+                            if(model != null){
                                 Field field = result.getDeclaredField(rsMeta.getColumnLabel(i));
                                 if(field!=null){
                                     field.setAccessible(true);
@@ -477,11 +477,6 @@ public class DBConnection {
                 throw new SQLException("TooManyResultsException: Expected one result (or null) to be returned by queryOne(), but found: "+count);
             }
         } catch (SQLException e) {
-            try {
-                conn.rollback();
-            } catch (SQLException e1) {
-                e1.printStackTrace();
-            }
             e.printStackTrace();
         } finally {
             closeAll(conn, pstm,resultSet);
@@ -609,8 +604,8 @@ public class DBConnection {
         try {
             conn.setAutoCommit(false);
             //将"#{}替换成?占位符"
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
-            Pattern p = Pattern.compile("#\\{\\w+\\}");
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{[\\w\u4e00-\u9fa5()（）]+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            Pattern p = Pattern.compile("#\\{[\\w\u4e00-\u9fa5()（）]+\\}");
             Matcher m = p.matcher(sql);
             if(o!=null){
                 JSONObject object = JSON.parseObject(JSON.toJSONString(o));

@@ -14,6 +14,19 @@
             <artifactId>base-util</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.maxx</groupId>
+            <artifactId>base-sms</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.maxx</groupId>
+            <artifactId>base-oss</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>com.mxx</groupId>
             <artifactId>cdms-common</artifactId>
@@ -36,5 +49,6 @@
             <artifactId>utils</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
     </dependencies>
 </project>
