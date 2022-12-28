@@ -21,14 +21,15 @@ public class DBConnection {
     private static String url;
     private static String username;
     private static String password;
-    private static Map propMap = new HashMap<>();
+    private static Map<String,Object> propMap = new HashMap<>();
+
     static {
-        Map<String,String> map = new HashMap();
+        Map<String, String> map = new HashMap();
         try {
             Yaml yaml = new Yaml();
-            propMap =(Map)yaml.load(new FileInputStream(new File(DBConnection.class.getResource("/db.yml").getFile())));
+            propMap = (Map) yaml.load(new FileInputStream(new File(DBConnection.class.getResource("/db.yml").getFile())));
             propMap = (Map) propMap.get("datasource");
-            if(propMap!=null){
+            if (propMap != null) {
                 map = (Map<String, String>) propMap.get("master");
                 url = map.get("url");
                 username = map.get("username");
@@ -41,16 +42,15 @@ public class DBConnection {
 
     /**
      * 主库
+     *
      * @return
      */
     public static Connection getConnection() {
-        Connection conn=null;
+        Connection conn = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            conn  = DriverManager.getConnection(url,username,password);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+            conn = DriverManager.getConnection(url, username, password);
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
         return conn;
@@ -58,18 +58,17 @@ public class DBConnection {
 
     /**
      * 其他数据源
+     *
      * @param key
      * @return
      */
     public static Connection getConnection(String key) {
-        Connection conn=null;
-        Map<String,String> map = (Map<String, String>) propMap.get(key);
+        Connection conn = null;
+        Map<String, String> map = (Map<String, String>) propMap.get(key);
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            conn  = DriverManager.getConnection(map.get("url"),map.get("username"),map.get("password"));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+            conn = DriverManager.getConnection(map.get("url"), map.get("username"), map.get("password"));
+        } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
         return conn;
@@ -90,11 +89,11 @@ public class DBConnection {
                 }
             }
             resultSet = pstm.executeQuery();
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 JSONObject object = new JSONObject();
-                ResultSetMetaData rsMeta=resultSet.getMetaData();
-                int columnCount=rsMeta.getColumnCount();
-                for (int i=1; i<=columnCount; i++) {
+                ResultSetMetaData rsMeta = resultSet.getMetaData();
+                int columnCount = rsMeta.getColumnCount();
+                for (int i = 1; i <= columnCount; i++) {
                     object.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                 }
                 objects.add(object);
@@ -107,15 +106,14 @@ public class DBConnection {
             }
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
 
         return objects;
     }
 
 
-
-    public static <T>T query(String sql, Object param,Class result)  {
+    public static <T> T query(String sql, Object param, Class<T> result) {
         Connection conn = null;
         PreparedStatement pstm = null;
         ResultSet resultSet = null;
@@ -123,49 +121,45 @@ public class DBConnection {
         List<Object> list = new ArrayList<>();
         try {
             conn = getConnection();
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
             //判断参数类型
-            if(param instanceof String||param instanceof Long||param instanceof Integer){
-                pstm.setObject(1 , param);
-            }else{
+            if (param instanceof String || param instanceof Long || param instanceof Integer) {
+                pstm.setObject(1, param);
+            } else {
                 Pattern p = Pattern.compile("#\\{\\w+\\}");
                 Matcher m = p.matcher(sql);
-                if(param!=null){
+                if (param != null) {
                     JSONObject object = JSON.parseObject(JSON.toJSONString(param));
-                    int i=1;
-                    while (m.find()){
+                    int i = 1;
+                    while (m.find()) {
                         String s = m.group();
-                        pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                        pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                         i++;
                     }
                 }
             }
             resultSet = pstm.executeQuery();
             try {
-                while (resultSet.next()){
+                while (resultSet.next()) {
                     //判断返回类型
-                    Map object = null;
+                    Map<String,Object> object = new HashMap<String,Object>();
                     Object model = null;
-                    if(result.getTypeName().equals("java.util.Map")){
-                        object = new HashMap();
-                    }else if(result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+                    if (result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
                         object = new JSONObject();
-                    }else if (!result.getTypeName().contains("java.lang")){
+                    } else if (!result.getTypeName().contains("java.lang")) {
                         model = result.newInstance();
                     }
-                    ResultSetMetaData rsMeta=resultSet.getMetaData();
-                    int columnCount=rsMeta.getColumnCount();
-                    if(columnCount==1){
+                    ResultSetMetaData rsMeta = resultSet.getMetaData();
+                    int columnCount = rsMeta.getColumnCount();
+                    if (columnCount == 1) {
                         model = resultSet.getObject(1);
-                    }else{
-                        for (int i=1; i<=columnCount; i++) {
-                            if(model!=null){
+                    } else {
+                        for (int i = 1; i <= columnCount; i++) {
+                            if (model != null) {
                                 Field field = result.getDeclaredField(rsMeta.getColumnLabel(i));
-                                if(field!=null){
-                                    field.setAccessible(true);
-                                    field.set(model,resultSet.getObject(i));
-                                }
-                            }else{
+                                field.setAccessible(true);
+                                field.set(model, resultSet.getObject(i));
+                            } else {
                                 object.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                             }
 
@@ -175,26 +169,22 @@ public class DBConnection {
                     list.add(model);
                     objects.add(object);
                 }
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
-        if(result.getTypeName().equals("java.util.Map")||result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("java.util.Map") || result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             return (T) objects;
-        }else{
+        } else {
             return (T) list;
         }
     }
 
-    public static <T>T query(String sql, Object param,Class result,String key)  {
+    public static <T> T query(String sql, Object param, Class<T> result, String key) {
         Connection conn = null;
         PreparedStatement pstm = null;
         ResultSet resultSet = null;
@@ -202,49 +192,45 @@ public class DBConnection {
         List<Object> list = new ArrayList<>();
         try {
             conn = getConnection(key);
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
             //判断参数类型
-            if(param instanceof String||param instanceof Long||param instanceof Integer){
-                pstm.setObject(1 , param);
-            }else{
+            if (param instanceof String || param instanceof Long || param instanceof Integer) {
+                pstm.setObject(1, param);
+            } else {
                 Pattern p = Pattern.compile("#\\{\\w+\\}");
                 Matcher m = p.matcher(sql);
-                if(param!=null){
+                if (param != null) {
                     JSONObject object = JSON.parseObject(JSON.toJSONString(param));
-                    int i=1;
-                    while (m.find()){
+                    int i = 1;
+                    while (m.find()) {
                         String s = m.group();
-                        pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                        pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                         i++;
                     }
                 }
             }
             resultSet = pstm.executeQuery();
             try {
-                while (resultSet.next()){
+                while (resultSet.next()) {
                     //判断返回类型
-                    Map object = null;
+                    Map<String, Object> object = new HashMap<>();
                     Object model = null;
-                    if(result.getTypeName().equals("java.util.Map")){
-                        object = new HashMap();
-                    }else if(result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+                    if (result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
                         object = new JSONObject();
-                    }else if (!result.getTypeName().contains("java.lang")){
+                    } else if (!result.getTypeName().contains("java.lang")) {
                         model = result.newInstance();
                     }
-                    ResultSetMetaData rsMeta=resultSet.getMetaData();
-                    int columnCount=rsMeta.getColumnCount();
-                    if(columnCount==1){
+                    ResultSetMetaData rsMeta = resultSet.getMetaData();
+                    int columnCount = rsMeta.getColumnCount();
+                    if (columnCount == 1) {
                         model = resultSet.getObject(1);
-                    }else{
-                        for (int i=1; i<=columnCount; i++) {
-                            if(model!=null){
+                    } else {
+                        for (int i = 1; i <= columnCount; i++) {
+                            if (model != null) {
                                 Field field = result.getDeclaredField(rsMeta.getColumnLabel(i));
-                                if(field!=null){
-                                    field.setAccessible(true);
-                                    field.set(model,resultSet.getObject(i));
-                                }
-                            }else{
+                                field.setAccessible(true);
+                                field.set(model, resultSet.getObject(i));
+                            } else {
                                 object.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                             }
 
@@ -254,21 +240,17 @@ public class DBConnection {
                     list.add(model);
                     objects.add(object);
                 }
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (NoSuchFieldException e) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchFieldException e) {
                 e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
-        if(result.getTypeName().equals("java.util.Map")||result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("java.util.Map") || result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             return (T) objects;
-        }else{
+        } else {
             return (T) list;
         }
     }
@@ -287,14 +269,14 @@ public class DBConnection {
                 }
             }
             resultSet = pstm.executeQuery();
-            while (resultSet.next()){
-                ResultSetMetaData rsMeta=resultSet.getMetaData();
-                int columnCount=rsMeta.getColumnCount();
-                if(columnCount==1){
+            while (resultSet.next()) {
+                ResultSetMetaData rsMeta = resultSet.getMetaData();
+                int columnCount = rsMeta.getColumnCount();
+                if (columnCount == 1) {
                     o = resultSet.getObject(1);
-                }else{
+                } else {
                     JSONObject object = new JSONObject();
-                    for (int i=1; i<=columnCount; i++) {
+                    for (int i = 1; i <= columnCount; i++) {
                         object.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                     }
                     o = object;
@@ -309,83 +291,75 @@ public class DBConnection {
             }
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
 
         return o;
     }
 
 
-    public static <T>T queryOne(String sql, Object param, Class<T> result)  {
+    public static <T> T queryOne(String sql, Object param, Class<T> result) {
         Connection conn = null;
         PreparedStatement pstm = null;
         ResultSet resultSet = null;
-        Map map = null;
+        Map<String,Object> map = new HashMap<>();
         Object model = null;
-        if(result.getTypeName().equals("java.util.Map")){
-            map = new HashMap();
-        }else if(result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             map = new JSONObject();
-        }else if (!result.getTypeName().contains("java.lang")){
+        } else if (!result.getTypeName().contains("java.lang")) {
             try {
                 model = result.newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
         try {
             conn = getConnection();
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
             //判断参数类型
-            if(param instanceof String||param instanceof Long||param instanceof Integer){
-                pstm.setObject(1 , param);
-            }else{
+            if (param instanceof String || param instanceof Long || param instanceof Integer) {
+                pstm.setObject(1, param);
+            } else {
                 Pattern p = Pattern.compile("#\\{\\w+\\}");
                 Matcher m = p.matcher(sql);
-                if(param!=null){
+                if (param != null) {
                     JSONObject object = JSON.parseObject(JSON.toJSONString(param));
-                    int i=1;
-                    while (m.find()){
+                    int i = 1;
+                    while (m.find()) {
                         String s = m.group();
-                        pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                        pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                         i++;
                     }
                 }
             }
             resultSet = pstm.executeQuery();
             int count = 0;
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 ++count;
-                ResultSetMetaData rsMeta=resultSet.getMetaData();
-                int columnCount=rsMeta.getColumnCount();
-                if(columnCount==1){
+                ResultSetMetaData rsMeta = resultSet.getMetaData();
+                int columnCount = rsMeta.getColumnCount();
+                if (columnCount == 1) {
                     model = resultSet.getObject(1);
-                }else{
+                } else {
                     try {
-                        for (int i=1; i<=columnCount; i++) {
-                            if(model!=null){
+                        for (int i = 1; i <= columnCount; i++) {
+                            if (model != null) {
                                 Field field = result.getDeclaredField(rsMeta.getColumnLabel(i));
-                                if(field!=null){
-                                    field.setAccessible(true);
-                                    field.set(model,resultSet.getObject(i));
-                                }
-                            }else{
+                                field.setAccessible(true);
+                                field.set(model, resultSet.getObject(i));
+                            } else {
                                 map.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                             }
 
                         }
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
                         e.printStackTrace();
                     }
                 }
 
             }
-            if(count>1){
-                throw new SQLException("TooManyResultsException: Expected one result (or null) to be returned by queryOne(), but found: "+count);
+            if (count > 1) {
+                throw new SQLException("TooManyResultsException: Expected one result (or null) to be returned by queryOne(), but found: " + count);
             }
         } catch (SQLException e) {
             try {
@@ -395,96 +369,88 @@ public class DBConnection {
             }
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
 
-        if(result.getTypeName().equals("java.util.Map")||result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("java.util.Map") || result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             return (T) map;
-        }else{
+        } else {
             return (T) model;
         }
     }
 
-    public static <T>T queryOne(String sql, Object param, Class<T> result,String key)  {
+    public static <T> T queryOne(String sql, Object param, Class<T> result, String key) {
         Connection conn = null;
         PreparedStatement pstm = null;
-        Map map = null;
+        Map<String,Object> map = new HashMap<>();
         Object model = null;
         ResultSet resultSet = null;
-        if(result.getTypeName().equals("java.util.Map")){
-            map = new HashMap();
-        }else if(result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             map = new JSONObject();
-        }else if (!result.getTypeName().contains("java.lang")){
+        } else if (!result.getTypeName().contains("java.lang")) {
             try {
                 model = result.newInstance();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
         try {
             conn = getConnection(key);
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
             //判断参数类型
-            if(param instanceof String||param instanceof Long||param instanceof Integer){
-                pstm.setObject(1 , param);
-            }else{
+            if (param instanceof String || param instanceof Long || param instanceof Integer) {
+                pstm.setObject(1, param);
+            } else {
                 Pattern p = Pattern.compile("#\\{\\w+\\}");
                 Matcher m = p.matcher(sql);
-                if(param!=null){
+                if (param != null) {
                     JSONObject object = JSON.parseObject(JSON.toJSONString(param));
-                    int i=1;
-                    while (m.find()){
+                    int i = 1;
+                    while (m.find()) {
                         String s = m.group();
-                        pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                        pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                         i++;
                     }
                 }
             }
             resultSet = pstm.executeQuery();
             int count = 0;
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 ++count;
-                ResultSetMetaData rsMeta=resultSet.getMetaData();
-                int columnCount=rsMeta.getColumnCount();
-                if(columnCount==1){
+                ResultSetMetaData rsMeta = resultSet.getMetaData();
+                int columnCount = rsMeta.getColumnCount();
+                if (columnCount == 1) {
                     model = resultSet.getObject(1);
-                }else{
+                } else {
                     try {
-                        for (int i=1; i<=columnCount; i++) {
-                            if(model != null){
+                        for (int i = 1; i <= columnCount; i++) {
+                            if (model != null) {
                                 Field field = result.getDeclaredField(rsMeta.getColumnLabel(i));
-                                if(field!=null){
-                                    field.setAccessible(true);
-                                    field.set(model,resultSet.getObject(i));
-                                }
-                            }else{
+                                field.setAccessible(true);
+                                field.set(model, resultSet.getObject(i));
+                            } else {
                                 map.put(rsMeta.getColumnLabel(i), resultSet.getObject(i));
                             }
 
                         }
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
                         e.printStackTrace();
                     }
                 }
 
             }
-            if(count>1){
-                throw new SQLException("TooManyResultsException: Expected one result (or null) to be returned by queryOne(), but found: "+count);
+            if (count > 1) {
+                throw new SQLException("TooManyResultsException: Expected one result (or null) to be returned by queryOne(), but found: " + count);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            closeAll(conn, pstm,resultSet);
+            closeAll(conn, pstm, resultSet);
         }
 
-        if(result.getTypeName().equals("java.util.Map")||result.getTypeName().equals("com.alibaba.fastjson.JSONObject")){
+        if (result.getTypeName().equals("java.util.Map") || result.getTypeName().equals("com.alibaba.fastjson.JSONObject")) {
             return (T) map;
-        }else{
+        } else {
             return (T) model;
         }
     }
@@ -496,25 +462,26 @@ public class DBConnection {
      * @param obj
      * @return
      */
-    public static Boolean update(Connection conn,String sql, Object... obj) throws SQLException{
+    public static Boolean update(Connection conn, String sql, Object... obj) throws SQLException {
         PreparedStatement pstm = null;
-        Boolean flag = false;
+        boolean flag = false;
         try {
             conn.setAutoCommit(false);
             pstm = conn.prepareStatement(sql);
             if (obj != null) {
                 for (int i = 0; i < obj.length; i++) {
-                    if(obj[i] instanceof Object[]){
+                    if (obj[i] instanceof Object[]) {
                         pstm.setArray(i + 1, conn.createArrayOf("bigint", (Object[]) obj[i]));
-                    }else{
+                    } else {
                         pstm.setObject(i + 1, obj[i]);
                     }
                 }
             }
-            flag = pstm.executeUpdate() == 1 ? true : false;
+            flag = pstm.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
         } finally {
+            assert pstm != null;
             pstm.close();
         }
 
@@ -528,34 +495,35 @@ public class DBConnection {
      * @param obj
      * @return
      */
-    public static Boolean update(Connection conn,String sql, Object obj) throws SQLException{
+    public static Boolean update(Connection conn, String sql, Object obj) throws SQLException {
         PreparedStatement pstm = null;
-        Boolean flag = false;
+        boolean flag ;
         try {
             conn.setAutoCommit(false);
-            if(obj!=null &&(obj instanceof String||obj instanceof Long||obj instanceof Integer)){
+            if ((obj instanceof String || obj instanceof Long || obj instanceof Integer)) {
                 pstm = conn.prepareStatement(sql);
                 pstm.setObject(1, obj);
-            }else{
+            } else {
                 //将"#{替换成？}"
-                pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+                pstm = conn.prepareStatement(sql.replaceAll("#\\{\\w+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
                 Pattern p = Pattern.compile("#\\{\\w+\\}");
                 Matcher m = p.matcher(sql);
-                if(obj!=null){
+                if (obj != null) {
                     JSONObject object = JSON.parseObject(JSON.toJSONString(obj));
-                    int i=1;
-                    while (m.find()){
+                    int i = 1;
+                    while (m.find()) {
                         String s = m.group();
-                        pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                        pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                         i++;
                     }
                 }
             }
 
-            flag = pstm.executeUpdate() == 1 ? true : false;
+            flag = pstm.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
         } finally {
+            assert pstm != null;
             pstm.close();
         }
 
@@ -570,66 +538,69 @@ public class DBConnection {
      * @param obj
      * @return
      */
-    public static Object insert(Connection conn,String sql, Object... obj) throws SQLException{
-        Boolean flag = false;
+    public static Object insert(Connection conn, String sql, Object... obj) throws SQLException {
+        boolean flag ;
         PreparedStatement pstm = null;
         Object id = null;
         try {
             conn.setAutoCommit(false);
-            pstm = conn.prepareStatement(sql,Statement.RETURN_GENERATED_KEYS);
+            pstm = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             if (obj != null) {
                 for (int i = 0; i < obj.length; i++) {
                     pstm.setObject(i + 1, obj[i]);
                 }
             }
-            flag = pstm.executeUpdate() == 1 ? true : false;
-            if(flag){
+            flag = pstm.executeUpdate() == 1;
+            if (flag) {
                 ResultSet resultSet = pstm.getGeneratedKeys();
-                if(resultSet.next()){
+                if (resultSet.next()) {
                     id = resultSet.getObject(1);
                 }
             }
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
         } finally {
+            assert pstm != null;
             pstm.close();
         }
         return id;
     }
 
-    public static Object insert(Connection conn,String sql, Object o) throws SQLException{
-        Boolean flag = false;
+    public static Object insert(Connection conn, String sql, Object o) throws SQLException {
+        boolean flag ;
         PreparedStatement pstm = null;
         Object id = null;
         try {
             conn.setAutoCommit(false);
-            //将"#{}替换成?占位符"
-            pstm = conn.prepareStatement(sql.replaceAll("#\\{[\\w\u4e00-\u9fa5()（）]+\\}","?"),Statement.RETURN_GENERATED_KEYS);
+            //  将"#{}替换成?占位符"
+            pstm = conn.prepareStatement(sql.replaceAll("#\\{[\\w\u4e00-\u9fa5()（）]+\\}", "?"), Statement.RETURN_GENERATED_KEYS);
             Pattern p = Pattern.compile("#\\{[\\w\u4e00-\u9fa5()（）]+\\}");
             Matcher m = p.matcher(sql);
-            if(o!=null){
+            if (o != null) {
                 JSONObject object = JSON.parseObject(JSON.toJSONString(o));
-                int i=1;
-                while (m.find()){
+                int i = 1;
+                while (m.find()) {
                     String s = m.group();
-                    pstm.setObject(i , object.get(s.substring(2,s.length()-1)));
+                    pstm.setObject(i, object.get(s.substring(2, s.length() - 1)));
                     i++;
                 }
             }
-            flag = pstm.executeUpdate() == 1 ? true : false;
-            if(flag){
+            flag = pstm.executeUpdate() == 1;
+            if (flag) {
                 ResultSet resultSet = pstm.getGeneratedKeys();
-                if(resultSet.next()){
+                if (resultSet.next()) {
                     id = resultSet.getObject(1);
                 }
             }
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
         } finally {
+            assert pstm != null;
             pstm.close();
         }
         return id;
     }
+
     /**
      * 通用的删除方法
      *
@@ -637,8 +608,8 @@ public class DBConnection {
      * @param obj
      * @return
      */
-    public static Boolean delete(Connection conn,String sql, Object...obj) throws SQLException{
-        Boolean flag = false;
+    public static Boolean delete(Connection conn, String sql, Object... obj) throws SQLException {
+        boolean flag = false;
         PreparedStatement pstm = null;
         try {
             conn.setAutoCommit(false);
@@ -648,10 +619,11 @@ public class DBConnection {
                     pstm.setObject(i + 1, obj[i]);
                 }
             }
-            flag = pstm.executeUpdate() == 1 ? true : false;
+            flag = pstm.executeUpdate() == 1;
         } catch (SQLException e) {
             throw new SQLException(e.getMessage());
-        }finally {
+        } finally {
+            assert pstm != null;
             pstm.close();
         }
         return flag;
@@ -677,7 +649,6 @@ public class DBConnection {
                 conn.close();
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
@@ -698,7 +669,6 @@ public class DBConnection {
                 conn.close();
             }
         } catch (SQLException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }

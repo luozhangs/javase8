@@ -149,7 +149,7 @@ public class ExcelUtil<E> {
             // 写入行数据
             for (int rowNumber = 0; rowNumber < sheetData.size(); rowNumber++) {
                 // 如果没有标题栏，起始行就是0，如果有标题栏，行号就应该为1
-                row = sheet.createRow(title_temp == null ? rowNumber : (rowNumber + 1));
+                row = sheet.createRow(rowNumber + 1);
                 rowData = sheetData.get(rowNumber);
                 for (int columnNumber = 0; columnNumber < rowData.length; columnNumber++) {
                     cell = row.createCell(columnNumber);
@@ -282,7 +282,7 @@ public class ExcelUtil<E> {
             for (Field field : fields) {
                 field.setAccessible(true);
                 excel = field.getAnnotation(Excel.class);
-                if (excel == null || excel.skip() == true) {
+                if (excel == null || excel.skip()) {
                     continue;
                 }
                 // 列宽注意乘256
@@ -309,7 +309,7 @@ public class ExcelUtil<E> {
 
                     // 忽略标记skip的字段
                     excel = field.getAnnotation(Excel.class);
-                    if (excel == null || excel.skip() == true) {
+                    if (excel == null || excel.skip()) {
                         continue;
                     }
                     // 数据
@@ -400,7 +400,14 @@ public class ExcelUtil<E> {
      * @throws Exception
      */
     public List<E> readFromFile(ExcelDataFormatter edf,File file) throws Exception {
+        return readFromFileSheet(edf,file,0);
+    }
 
+    public List<E> readFromFile(ExcelDataFormatter edf,File file, int sheetIndex) throws Exception {
+        return readFromFileSheet(edf,file,sheetIndex);
+    }
+
+    private List<E> readFromFileSheet(ExcelDataFormatter edf,File file, int sheetIndex) throws Exception {
         Excel _excel = null;
         Map<String, String> textToKey = new HashMap<String, String>();
         Field[] fields = {};
@@ -409,7 +416,7 @@ public class ExcelUtil<E> {
             fields = getClassFieldsAndSuperClassFields(e.getClass());
             for (Field field : fields) {
                 _excel = field.getAnnotation(Excel.class);
-                if (_excel == null || _excel.skip() == true) {
+                if (_excel == null || _excel.skip()) {
                     continue;
                 }
                 textToKey.put(_excel.name(), field.getName());
@@ -421,7 +428,7 @@ public class ExcelUtil<E> {
 
 //        Workbook wb = new XSSFWorkbook(is);
         Workbook wb = WorkbookFactory.create(is);
-        Sheet sheet = wb.getSheetAt(0);
+        Sheet sheet = wb.getSheetAt(sheetIndex);
         Row title = sheet.getRow(0);
         // 标题数组，后面用到，根据索引去标题名称，通过标题名称去字段名称用到 textToKey
         String[] titles = new String[title.getPhysicalNumberOfCells()];
@@ -459,7 +466,7 @@ public class ExcelUtil<E> {
                     if(e.getClass().getSimpleName().equals("JSONObject")){
                         //解决科学计数的问题
                         if(cell.getCellType()== HSSFCell.CELL_TYPE_NUMERIC){
-                            DecimalFormat df = new DecimalFormat("0");
+                            DecimalFormat df = new DecimalFormat("0.00");
                             cellValue = df.format(cell.getNumericCellValue());
                         }else{
                             cell.setCellType(Cell.CELL_TYPE_STRING);
@@ -470,7 +477,7 @@ public class ExcelUtil<E> {
                         if (edf != null) {
                             map = edf.get(titles[i]);
                             if (map != null) {
-                               object.put(titles[i],map.get(cellValue));
+                                object.put(titles[i],map.get(cellValue));
                             }else{
                                 object.put(titles[i],cellValue);
                             }
@@ -527,14 +534,8 @@ public class ExcelUtil<E> {
                 case XSSFCell.CELL_TYPE_ERROR:
                     o = cell.getErrorCellValue();
                     break;
-                case XSSFCell.CELL_TYPE_BLANK:
-                    o = null;
-                    break;
                 case XSSFCell.CELL_TYPE_FORMULA:
                     o = cell.getCellFormula();
-                    break;
-                default:
-                    o = null;
                     break;
             }
 
@@ -544,7 +545,7 @@ public class ExcelUtil<E> {
             for (Field field : fields) {
                 field.setAccessible(true);
                 if (field.getName().equals(key)) {
-                    Boolean bool = true;
+                    boolean bool = true;
                     Map<String, String> map = null;
                     if (edf == null) {
                         bool = false;
@@ -579,29 +580,17 @@ public class ExcelUtil<E> {
                         if (bool) {
                             field.set(e, map.get(o.toString()) != null ? Long.parseLong(map.get(o.toString())) : Long.parseLong(o.toString()));
                         }else{
-                            if (o.getClass().equals(Long.class)) {
-                                field.set(e, o);
-                            }else{
-                                field.set(e, Long.valueOf(o.toString()));
-                            }
+                            field.set(e, Long.valueOf(o.toString()));
                         }
                     } else if (field.getType().equals(Integer.class)) {
                         // 检查是否需要转换
                         if (bool) {
                             field.set(e, map.get(o.toString()) != null ? Integer.parseInt(map.get(o.toString())) : Integer.parseInt(o.toString()));
                         }else{
-                            if (o.getClass().equals(Integer.class)) {
-                                field.set(e, o);
-                            }else{
-                                field.set(e, Integer.valueOf(o.toString()));
-                            }
+                            field.set(e, Integer.valueOf(o.toString()));
                         }
                     } else if (field.getType().equals(BigDecimal.class)) {
-                        if (o.getClass().equals(BigDecimal.class)) {
-                            field.set(e, o);
-                        } else {
-                            field.set(e, BigDecimal.valueOf(Double.parseDouble(o.toString())));
-                        }
+                        field.set(e, BigDecimal.valueOf(Double.parseDouble(o.toString())));
                     } else if (field.getType().equals(Boolean.class)) {
                         if (o.getClass().equals(Boolean.class)) {
                             field.set(e, o);
@@ -614,11 +603,7 @@ public class ExcelUtil<E> {
                             }
                         }
                     } else if (field.getType().equals(Float.class)) {
-                        if (o.getClass().equals(Float.class)) {
-                            field.set(e, o);
-                        } else {
-                            field.set(e, Float.parseFloat(o.toString()));
-                        }
+                        field.set(e, Float.parseFloat(o.toString()));
                     } else if (field.getType().equals(Double.class)) {
                         if (o.getClass().equals(Double.class)) {
                             field.set(e, o);
@@ -645,7 +630,6 @@ public class ExcelUtil<E> {
     }
 
     public static Field[] getClassFieldsAndSuperClassFields(Class c){
-        Field[] declaredFields = c.getDeclaredFields();
-        return declaredFields;
+        return c.getDeclaredFields();
     }
 }
